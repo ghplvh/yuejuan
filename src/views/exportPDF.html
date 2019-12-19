@@ -1,0 +1,599 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>导出</title>
+  <script src="../utils/jquery.min.js"></script>
+  <!-- <script src="https://unpkg.com/vue@2.5.17/dist/vue.min.js"></script>
+  <script src="https://unpkg.com/axios@0.18.0/dist/axios.min.js"></script> -->
+  <!-- <script src="https://cdn.bootcss.com/html2canvas/0.5.0-beta4/html2canvas.js"></script> -->
+  <script src="../utils/html2canvas.js"></script>
+  <script src="../utils/jspdf.debug.js"></script>
+  <!-- <script src="https://cdn.bootcss.com/jspdf/1.5.3/jspdf.debug.js" integrity="sha384-NaWTHo/8YCBYJ59830LTz/P4aQZK1sS0SneOgAvhsIl3zBu8r9RevNg5lHCHAuQ/"
+    crossorigin="anonymous"></script> -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      showProcessingMessages: false, //关闭js加载过程信息
+      messageStyle: "none", //不显示信息
+      extensions: ["tex2jax.js"],
+      jax: ["input/TeX", "output/HTML-CSS"],
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"] ], //行内公式选择符
+          displayMath: [ ['$$','$$'], ["\\[","\\]"] ], //段内公式选择符
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre','code','a'], //避开某些标签
+          ignoreClass:"comment-content" //避开含该Class的标签
+      },
+      "HTML-CSS": {
+          availableFonts: ["STIX","TeX"], //可选字体
+          showMathMenu: false, //关闭右击菜单显示
+          // linebreaks: {automatic: true}
+      },
+      SVG:{
+        // linebreaks: {automatic: true}
+      }
+    });
+  </script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</head>
+
+<body>
+  <button onclick="exportPDF()">导出PDF</button>
+  <button onclick="pauseExport()">暂停导出</button>
+  <button onclick="exportPDF()">继续导出</button>
+  <div id="error-book"></div>
+</body>
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  img {
+    max-height: 150mm;
+  }
+
+  body {
+    background-color: #cccccc;
+  }
+
+  #error-book {
+    position: relative;
+    width: 420mm;
+    min-height: 594mm;
+    padding: 0 3mm 0 7mm;
+    background-color: #ffffff;
+    margin: 0 auto;
+  }
+
+  .student-info {
+    position: absolute;
+    background-color: #ffffff;
+    border-bottom: 1mm solid #cccccc;
+    top: 0;
+    left: 7mm;
+    z-index: 100;
+    width: 410mm;
+    height: 20mm;
+    line-height: 20mm;
+    font-size: 28px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .student-info-temp {
+    position: relative;
+    width: 410mm;
+    height: 20mm;
+  }
+
+  .exam-name {
+    margin-right: 15mm;
+  }
+
+  .student {
+    width: 350mm;
+    display: flex;
+    align-items: center;
+  }
+
+  .logo {
+    width: 60mm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo img {
+    height: 10mm;
+  }
+
+  .question {
+    font-size: 24px;
+    /* display: flex; */
+    /* justify-content: space-between; */
+  }
+
+  .line {
+    width: 410mm;
+    height: 1mm;
+    background-color: #cccccc;
+  }
+
+  .timu-box {
+    width: 410mm;
+    height: auto;
+    /* border-right: 1mm solid #cccccc; */
+    padding: 0 10mm 0 5mm;
+  }
+
+  .zsd {
+    width: 410mm;
+    padding: 3mm 3mm 0 3mm;
+    /* border-right: 1mm solid #cccccc; */
+  }
+
+  .zsd-title {
+    font-size: 24px;
+    font-weight: bold;
+  }
+
+  .yuanti {
+    padding-bottom: 10mm;
+    border-bottom: 1mm dashed #cccccc;
+  }
+
+  .tuozhanti {
+    padding-bottom: 5mm;
+  }
+
+  .yuanti-title {
+    width: 330mm;
+    min-height: 15mm;
+    line-height: 15mm;
+    font-size: 28px;
+    font-weight: bold;
+    /* display: flex; */
+    justify-content: space-between;
+  }
+
+  .tihao {
+    float: left;
+  }
+
+  .score-info {
+    display: flex;
+    align-items: center;
+    flex-flow: row nowrap;
+  }
+
+  .score-info div {
+    margin-left: 5mm;
+  }
+
+  .yt-content {}
+
+  .yt-options {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-flow: row wrap;
+  }
+
+  .option-item {
+    width: auto;
+    margin-right: 10mm;
+  }
+
+  .yt-answer-area {}
+
+  .answer-area-title {
+    font-size: 28px;
+    font-weight: bold;
+  }
+
+  .answer-area {
+    height: 70mm;
+  }
+
+  .answer-title {
+    display: block;
+    font-size: 24px;
+    font-weight: bold;
+  }
+
+  .answer-content {
+    display: block;
+    font-size: 24px;
+  }
+</style>
+<script>
+  var data = {}
+  var isExport = false // 是否连续导出
+  var examId = 'c757a6063427484a86a7b4894f9be83a' // 考试id
+  var subjectName = '地理' // 科目名称
+  var pageIndex = 1 // 第几个
+
+  function pauseExport() {
+    isExport = false
+  }
+
+  function exportPDF() {
+    window.scrollTo(0, 0);
+    isExport = true
+    var shareContent = document.getElementById('error-book'); //需要截图的包裹的（原生的）DOM 对象
+    var opts = {
+      useCORS: true,
+      // allowTaint: true
+    };
+    html2canvas(shareContent, opts).then(
+      function (canvas) {
+        var context = canvas.getContext('2d');
+        // 【重要】关闭抗锯齿
+        context.mozImageSmoothingEnabled = false;
+        context.webkitImageSmoothingEnabled = false;
+        context.msImageSmoothingEnabled = false;
+        context.imageSmoothingEnabled = false;
+        // pdf.save('stone.pdf');
+        // console.log(canvas);
+        var contentWidth = canvas.width;
+        var contentHeight = canvas.height;
+        //一页pdf显示html页面生成的canvas高度;
+        var pageHeight = contentWidth / 210 * 297;
+        //未生成pdf的html页面高度
+        var leftHeight = contentHeight;
+        //页面偏移
+        var position = 0;
+        //a4纸的尺寸[595.28,841.89]，html页面生成的canvas在pdf中图片的宽高
+        var imgWidth = 595;
+        var imgHeight = 595 / contentWidth * contentHeight;
+        var pageData = canvas.toDataURL('image/jpeg', 1.0);
+        // console.log(pageData)
+        //注①
+        var pdf = new jsPDF('', 'pt', 'a4');
+        // context.fillStyle = "#FFF";
+        //有两个高度需要区分，一个是html页面的实际高度，和生成pdf的页面高度(841.89)
+        //当内容未超过pdf一页显示的范围，无需分页
+        var pageNum = 0
+        if (leftHeight < pageHeight) {
+          pdf.addImage(pageData, 'JPEG', 0, 0, imgWidth, imgHeight);
+        } else {
+          while (leftHeight > 0) {
+            //arg3-->距离左边距;arg4-->距离上边距;arg5-->宽度;arg6-->高度
+            pdf.addImage(pageData, 'JPEG', 0, position, imgWidth, imgHeight)
+            leftHeight -= pageHeight;
+            position -= 841.89;
+            //避免添加空白页
+            if (leftHeight > 0) {
+              //注②
+              pdf.addPage();
+            }
+            pageNum += 1
+          }
+          if (pageNum > 1 && pageNum % 2 !== 0) {
+            pdf.addPage();
+          }
+        }
+        let pdfName = data.className + data.studentName + '.pdf'
+        pdf.save(pdfName);
+        pageIndex = pageIndex + 1
+        $('#error-book').html('')
+        get()
+      }
+    )
+  }
+
+  function getChoiceHtml(data) {
+    let optionHtml = ''
+    let optionHtml1 = ''
+    // console.log(data.options1);
+    Object.keys(data.options).map(key => {
+      // console.log(data.options[key])
+      optionHtml += `<span class="option-item">${key}.${data.options[key]}</span>`
+    })
+    Object.keys(data.options1).map(key => {
+      optionHtml1 += `<span class="option-item">${key}.${data.options1[key]}</span>`
+    })
+    // console.log(data)
+    let knowledgePoints = data.knowledgePoints.map(item => {
+      return item.name
+    })
+    let html =
+      `<div class="question choice">
+      <div class="timu-box">
+        <div class="yuanti">
+          <div class="yuanti-title">
+            <div class="tihao">【题.${data.tNumber}】</div>
+            <div class="score-info">
+              <div class="info-get">总分${data.sore}分</div>
+            </div>
+          </div>
+          ${data.material ? `<div class="yt-content">${data.material}</div>`:``}
+          <div class="yt-content">${data.subject1}</div>
+          <div class="yt-options">${optionHtml}</div>
+        </div>
+        <div class="tuozhanti">
+          <div class="yuanti-title">拓展练习</div>
+          ${data.material1 ? `<div class="yt-content">${data.material1}</div>`:``}
+          <div class="yt-content">${data.subject2}</div>
+          <div class="yt-options">${optionHtml1}</div>
+        </div>
+      </div>
+      <div class="zsd">
+        <span class="zsd-title">所含知识点：</span>
+        <span>${knowledgePoints.join(',')}</span>
+      </div>
+    </div>`
+    return html
+  }
+
+  function getFillingHtml(data) {
+    let knowledgePoints = data.knowledgePoints.map(item => {
+      return item.name
+    })
+    let html =
+      `<div class="question filling">
+      <div class="timu-box">
+        <div class="yuanti">
+          <div class="yuanti-title">
+            <div class="tihao">【题.${data.tNumber}】</div>
+            <div class="score-info">
+              <div class="info-get">总分${data.sore}分</div>
+            </div>
+          </div>
+          ${data.material ? `<div class="yt-content">${data.material}</div>`:``}
+          <div class="yt-content">${data.subject1}</div>
+        </div>
+        <div class="tuozhanti">
+          <div class="yuanti-title">拓展练习</div>
+          ${data.material1 ? `<div class="yt-content">${data.material1}</div>`:``}
+          <div class="yt-content">${data.subject2}</div>
+        </div>
+      </div>
+      <div class="zsd">
+        <span class="zsd-title">所含知识点：</span>
+        <span>${knowledgePoints.join(',')}</span>
+      </div>
+    </div>`
+    return html
+  }
+
+  function getJiedaHtml(data) {
+    let knowledgePoints = data.knowledgePoints.map(item => {
+      return item.name
+    })
+    let html =
+      `<div class="question jieda">
+      <div class="timu-box">
+        <div class="yuanti">
+          <div class="yuanti-title">
+            <div class="tihao">【题.${data.tNumber}】</div>
+            <div class="score-info">
+              <div class="info-get">总分${data.sore}分</div>
+            </div>
+          </div>
+          ${data.material ? `<div class="yt-content">${data.material}</div>`:``}
+          <div class="yt-content">${data.subject1}</div>
+          <div class="yt-answer-area">
+            <div class="answer-area-title">作答区：</div>
+            <div class="answer-area"></div>
+          </div>
+        </div>
+        <div class="tuozhanti">
+          <div class="yuanti-title">拓展练习</div>
+          ${data.material1 ? `<div class="yt-content">${data.material1}</div>`:``}
+          <div class="yt-content">${data.subject2}</div>
+          <div class="yt-answer-area">
+            <div class="answer-area-title">作答区：</div>
+            <div class="answer-area"></div>
+          </div>
+        </div>
+      </div>
+      <div class="zsd">
+        <span class="zsd-title">所含知识点：</span>
+        <span>${knowledgePoints.join(',')}</span>
+      </div>
+    </div>`
+    return html
+  }
+
+  function getStudentHtml(data, top = 0) {
+    let html =
+      `<div class="student-info" style="top:${top}px;">
+        <div class="student">
+          <div class="exam-name">${data.examName}</div>
+            <div class="student-name">${data.className}班-${data.studentName}</div>
+          </div>
+          <div class="logo">
+            <img src="http://yjxt.oss-cn-shenzhen.aliyuncs.com/luti/1553346559559.png">
+          </div>
+        </div>
+      <div class="student-info-temp"></div>`
+    return html
+  }
+
+  function getAnswerHtml(data) {
+    let html = `<div class="answer">
+      <div class="answer-title">${data.title}</div>
+      <div class="answer-content">${data.content}</div>
+    </div>`
+    return html
+  }
+
+  function js_getDPI() {
+    var arrDPI = new Array();
+    if (window.screen.deviceXDPI != undefined) {
+      arrDPI[0] = window.screen.deviceXDPI;
+      arrDPI[1] = window.screen.deviceYDPI;
+    } else {
+      var tmpNode = document.createElement("DIV");
+      tmpNode.style.cssText = "width:1in;height:1in;position:absolute;left:0px;top:0px;z-index:99;visibility:hidden";
+      document.body.appendChild(tmpNode);
+      arrDPI[0] = parseInt(tmpNode.offsetWidth);
+      arrDPI[1] = parseInt(tmpNode.offsetHeight);
+      tmpNode.parentNode.removeChild(tmpNode);
+    }
+    return arrDPI;
+  }
+
+  function mm2px(mm) {
+    let dpi = js_getDPI()[0]
+    return mm / 25.4 * dpi
+  }
+
+  function px2mm(px) {
+    let dpi = js_getDPI()[0]
+    return px / dpi * 25.4
+  }
+
+  function timeout(ms) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve($('#error-book').height())
+      }, ms)
+    })
+  }
+  get()
+
+  function get() {
+    $.ajax({
+      url: `http://192.168.99.194:10003/web/error/errorQuestions?examId=${examId}&subjectName=${subjectName}&pageIndex=${pageIndex}`,
+      // url: `http://47.107.116.88:8023/dckj-ec-exam/web/error/errorQuestions?examId=${examId}&subjectName=${subjectName}&pageIndex=${pageIndex}`,
+      success: (res) => {
+        data = res.data[0]
+        console.log(data.studentName)
+        let studentInfoHtml = getStudentHtml(data)
+        $('#error-book').append(studentInfoHtml)
+        let tztAnswers = []
+        for (let index = 0; index < data.origList.length; index++) {
+          let item = data.origList[index]
+          let lastItem = index > 0 ? data.origList[index - 1] : {}
+          Object.keys(item).map(key => {
+            let prop = item[key]
+            let str = typeof prop === 'string' ? prop : JSON.stringify(prop)
+            if (str.indexOf('haofenshu.com') > -1) {
+              console.error(key, item[key])
+            }
+          })
+          // item.tihao = item.tid * 1 + 1
+          item.knowledgePoints = item.knowledgePoints ? JSON.parse(item.knowledgePoints) : {}
+          tztAnswers.push({
+            title: `${item.tNumber}拓展题答案`,
+            content: item.answer1
+          })
+          if (parseInt(item.types) === 0 || parseInt(item.types) === 1) {
+            item.options = item.options ? JSON.parse(item.options) : {}
+            // console.log(item.options1);
+            item.options1 = item.options1 ? JSON.parse(item.options1) : {}
+          }
+          item.material = item.material === lastItem.material ? '' : item.material
+          item.material1 = item.material1 === lastItem.material1 ? '' : item.material1
+          let html = ''
+          if (parseInt(item.types) === 0 || parseInt(item.types) === 1) {
+            html = getChoiceHtml(item)
+          } else if (parseInt(item.types) === 2 || parseInt(item.types) === 4) {
+            html = getFillingHtml(item)
+          } else if (parseInt(item.types) === 3) {
+            html = getJiedaHtml(item)
+          }
+          $('#error-book').append(html)
+          $('#error-book').append('<div class="line"></div>')
+        }
+        let a4Height = mm2px(594)
+        // let lineList = $('#error-book .line')
+        // let lastLineTop = lineList[lineList.length - 1].offsetTop
+        // let tempHeight = a4Height - (lastLineTop % a4Height)
+        // $('#error-book').append(`<div style="width:100%;height:${tempHeight}px;"></div>`)
+        // console.log(tztAnswers)
+        // for (let i = 0; i < tztAnswers.length; i++) {
+        //   let item = tztAnswers[i]
+        //   let html = getAnswerHtml(item)
+        //   $('#error-book').append(html)
+        // }
+        MathJax.Hub.Queue(["Typeset", MathJax.Hub, document.getElementById('error-book')], function () {
+          let tagList = $('#error-book div')
+          // console.log(tagList)
+          let mm_5 = mm2px(5)
+          for (let i = 0; i < tagList.length; i++) {
+            let tag = tagList[i]
+            let offsetTop = tag.offsetTop
+            let tagHeight = $(tag).outerHeight(true)
+            let children = $(tag).find('div')
+            let futureHeight = offsetTop % a4Height + tagHeight
+            // console.log(offsetTop % a4Height, tagHeight, a4Height, children.length);
+            // console.log(children);
+            if (futureHeight > a4Height && children.length === 0) {
+              console.log('跳页');
+              let divHeight = a4Height - (offsetTop % a4Height)
+              $(tag).before(`<div style="width:100%;height:${divHeight}px;"></div>`)
+              let stuHtml = getStudentHtml(data, Math.ceil(offsetTop / a4Height) * a4Height)
+              $(tag).before(stuHtml)
+              if (tagHeight > a4Height) {
+                let rowList = $(tag).find('*')
+                for (let r = 0; r < rowList.length; r++) {
+                  let row = rowList[r]
+                  // console.log(row)
+                  let rowOffsetTop = row.offsetTop
+                  let rowHeight = $(row).outerHeight(true)
+                  let rowChildren = $(row).find('*')
+                  let futureHeight2 = rowOffsetTop % a4Height + rowHeight
+                  if (futureHeight2 > a4Height && rowChildren.length === 0) {
+                    console.log('跳页');
+                    let divHeight2 = a4Height - (rowOffsetTop % a4Height)
+                    $(row).before(`<div style="width:100%;height:${divHeight2}px;"></div>`)
+                    let stuHtml2 = getStudentHtml(data, Math.ceil(rowOffsetTop / a4Height) * a4Height)
+                    $(row).before(stuHtml2)
+                  }
+                }
+              }
+            }
+          }
+
+          let lineList = $('#error-book .line')
+          let lastLineTop = lineList[lineList.length - 1].offsetTop
+          let tempHeight = a4Height - (lastLineTop % a4Height)
+          $('#error-book').append(`<div style="width:100%;height:${tempHeight}px;"></div>`)
+          // $('#error-book').append(`<div class="answer-list"></div>`)
+          for (let i = 0; i < tztAnswers.length; i++) {
+            let item = tztAnswers[i]
+            let html = getAnswerHtml(item)
+            $('#error-book').append(html)
+          }
+          MathJax.Hub.Queue(["Typeset", MathJax.Hub, document.getElementsByClassName('answer')], function () {
+            let answerTagList = $('#error-book .answer *')
+            // console.log(answerTagList)
+            for (let n = 0; n < answerTagList.length; n++) {
+              let aTag = answerTagList[n]
+              let aOffsetTop = aTag.offsetTop
+              let aTagHeight = $(aTag).outerHeight(true)
+              var paddT = $(aTag).innerWidth() - $(aTag).width();
+              let aChildren = $(aTag).find('*')
+              let aFutureHeight = (aOffsetTop) % a4Height + aTagHeight + paddT
+              // console.log(aOffsetTop % a4Height, aTagHeight, a4Height)
+              // console.log(aTag.tagName);
+              if (aFutureHeight >= a4Height && (aTag.tagName !== 'DIV' || aChildren.length === 0)) {
+              // if (aFutureHeight >= a4Height) {
+                // console.dir(aTag)
+                console.log('跳页');
+                let aDivHeight = a4Height - (aOffsetTop % a4Height)
+                $(aTag).before(`<div style="width:100%;height:${aDivHeight}px;"></div>`)
+                let aStuHtml = getStudentHtml(data, Math.ceil(aOffsetTop / a4Height) * a4Height)
+                $(aTag).before(aStuHtml)
+              }
+            }
+            if (isExport) {
+              // setTimeout(() => {
+              exportPDF()
+              // }, 6000);
+            }
+          })
+        });
+      }
+    })
+  }
+</script>
+
+</html>

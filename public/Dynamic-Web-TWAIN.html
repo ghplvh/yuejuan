@@ -1,0 +1,106 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+    <title>Hello World</title>
+    <script type="text/javascript" src="Resources/dynamsoft.webtwain.initiate.js"></script>
+    <script type="text/javascript" src="Resources/dynamsoft.webtwain.config.js"></script>
+	
+</head>
+<body>
+    <div id="dwtcontrolContainer" ></div>
+    <input type="button" value="Scan" onclick="AcquireImage();" />
+    <input type="button" value="Save" onclick="btn_SaveOnClick();" />
+    <script type="text/javascript">
+    function AcquireImage() {
+	var DWObject = Dynamsoft.WebTwainEnv.GetWebTwain('dwtcontrolContainer');
+	if (DWObject) {		
+		DWObject.SelectSource(function () {		
+		var OnAcquireImageSuccess = function () {
+            console.log('success')
+            console.log(DWObject)
+		    DWObject.CloseSource();
+        };
+        var OnAcquireImageFailure = function () {
+            console.log('fail')
+		    DWObject.CloseSource();
+        };
+		DWObject.OpenSource();
+		DWObject.IfDisableSourceAfterAcquire = true;
+		DWObject.AcquireImage(OnAcquireImageSuccess, OnAcquireImageFailure);
+            }, function () {
+		console.log('SelectSource failed!');
+            });
+        }
+        // var canvaList = document.getElementsByTagName('canvas')
+        // console.log(canvaList)
+    }
+    function btn_SaveOnClick() {
+        // var DWObject = Dynamsoft.WebTwainEnv.GetWebTwain('dwtcontrolContainer');
+        // console.log(DWObject)
+        // var OnSuccess = function () {
+        //     console.log('save success')
+        // }
+        // var OnFailure = function (errorCode, errorString) {
+        //     alert(errorCode)
+        //     alert(errorString);
+        // }        
+        // if (DWObject.HowManyImagesInBuffer == 0){
+        //     alert("No images in buffer.");
+        //     return;
+        // }
+        // let index = localStorage.getItem('DWT_port')
+        // console.log(index)
+        // for (var i = 0; i < DWObject.HowManyImagesInBuffer; i++) {
+        //     DWObject.SaveAsPNG("D:/pngmenu\\"+i+".png", i, OnSuccess, OnFailure);
+
+        // }
+        btnUpload_onclick ()
+    }
+    // function imgUpload () {
+    //     var DWObject = Dynamsoft.WebTwainEnv.GetWebTwain('dwtcontrolContainer');
+    //     var url = 'http://192.168.0.144:10003/web/upload/uploadImg?filedir=test%2F'
+    //     var indices = [1]
+    //     var enumImageType = [3]
+    //     var dataFormat = EnumDWT_UploadDataFormat.Binary
+    //     function OnHttpUploadSuccess (httpResponse) {
+    //         console.log("HTTPResponseString: " + httpResponse);
+    //     }
+    //     function OnHttpUploadFailure (errorCode, errorString, httpResponse) {
+    //         alert("ErrorCode: " + errorCode+ "ErrorString: " + 
+    //         errorString + "HTTPResponseString: " + httpResponse);
+    //     }
+    //     DWObject.HTTPUpload(url, OnHttpUploadSuccess, OnHttpUploadFailure);
+    // }
+    function btnUpload_onclick () {
+        var DWObject = Dynamsoft.WebTwainEnv.GetWebTwain('dwtcontrolContainer');
+        console.log(DWObject)
+        console.log(DWObject.CurrentImageIndexInBuffer)
+        var strHTTPServer = 'http://192.168.0.144:10003/web/upload/uploadImg?filedir=test66',
+            sImageIndex = DWObject.CurrentImageIndexInBuffer,
+            actionPage = '',
+            fileName = 'test.png',
+            sFun = function(){
+				console.log('successfully uploaded a file');
+			}, fFun = function(){
+				console.log('failed to upload!');
+            };
+        DWObject.HttpFieldNameOfUploadedImage = 'file'
+        for (var i = 0; i <= DWObject.CurrentImageIndexInBuffer; i++) {
+            console.log(i)
+            DWObject.HTTPUploadThroughPost(
+                strHTTPServer,
+                i,
+                actionPage,
+                fileName,
+                sFun, fFun
+            );
+        }
+        // DWObject.RegisterEvent('OnInternetTransferPercentage', function(sPercentage) {
+        //     console.log(sPercentage);
+        // });
+    }
+    </script>
+</body>
+</html><SCRIPT Language=VBScript><!--
+
+//--></SCRIPT>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+  <script src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js"></script>
+  <script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
+  <title>Document</title>
+</head>
+
+<body>
+  <div id="app">
+    <div>
+      <button @click="nextPage()">下一页</button>
+    </div>
+    <div id="question"></div>
+  </div>
+</body>
+<script>
+  new Vue({
+    el: '#app',
+    data: {
+      href: 'http://192.168.99.227:8080/ssm-crud/subjectInfoHigh',
+      id: 1,
+      period: 2
+    },
+    methods: {
+      nextPage: function () {
+        this.id = this.id + 1
+        this.$http.get(this.href + '?id=' + this.id + '&period=' + this.period).then(function (res) {
+          console.log(res)
+        document.getElementById('question').write(res.body);
+      }, function () {
+        console.log('请求失败处理');
+      });
+    }
+  }
+  })
+</script>
+
+</html>
