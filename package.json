@@ -16,7 +16,7 @@
     "element-ui": "^2.4.11",
     "js-base64": "^2.5.0",
     "jsencrypt": "^3.0.0-rc.1",
-    "node-sass": "^4.12.0",
+    "node-sass": "^4.13.1",
     "normalize.css": "^8.0.0",
     "nprogress": "^0.2.0",
     "quill-image-drop-module": "^1.0.3",
